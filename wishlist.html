@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>SAIKODA YO!! Wishlist</title>
+</head>
+
+<body>
+    <header>
+        <img src="logo_small.png" alt="Anime Store Logo" class="logo">
+        <span class="store-name">SAIKODA YO !!</span>
+        <div class="nav-buttons">
+            <button onclick="location.href='cart.html'">CART</button>
+            <button onclick="location.href='home.html'">HOME PAGE</button>
+            <button onclick="logout()">LOG OUT</button>
+        </div>
+    </header>
+
+    <h2>Your Wishlist</h2>
+    <div class="products" id="wishlist-items"></div>
+
+    <script>
+        const username = localStorage.getItem('username');
+        if (!username) {
+            alert('You need to log in first!');
+            window.location.href = 'index.html';
+        }
+
+        // Load wishlist items
+        function loadWishlist() {
+            fetch(`/wishlist?username=${username}`)
+                .then(res => res.json())
+                .then(wishlistItems => {
+                    const wishlistContainer = document.getElementById('wishlist-items');
+                    wishlistContainer.innerHTML = ''; // Clear previous items
+
+                    if (wishlistItems.length === 0) {
+                        wishlistContainer.innerHTML = '<p>Your wishlist is empty.</p>';
+                    } else {
+                        wishlistItems.forEach(product => {
+                            wishlistContainer.innerHTML += `
+                                <div class="product">
+                                    <img src="${product.image_url}" alt="${product.name}">
+                                    <p>${product.name}</p>
+                                    <p>Price: ₹${product.price}</p>
+                                    <button onclick="moveToCart(${product.id})">Add to Cart</button>
+                                </div>
+                            `;
+                        });
+                    }
+                })
+                .catch(error => console.error('Error loading wishlist:', error));
+        }
+
+        // Move item from wishlist to cart
+        function moveToCart(productId) {
+            fetch('/move-to-cart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, product_id: productId })
+            }).then(() => {
+                alert('Product moved to cart');
+                loadWishlist(); // Refresh wishlist
+            });
+        }
+
+        function logout() {
+            fetch('/clear-cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username: localStorage.getItem('username') })
+            })
+                .then(() => {
+                    localStorage.removeItem('username'); // Clear stored username
+                    window.location.href = 'index.html'; // Redirect to login
+                })
+                .catch(error => console.error('Error during logout:', error));
+        }
+
+        // Load wishlist on page load
+        window.onload = loadWishlist;
+    </script>
+</body>
+
+</html>

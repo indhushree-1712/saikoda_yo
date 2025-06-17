@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAIKODA YO!! Cart</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <img src="logo_small.png" alt="Anime Store Logo" class="logo">
+        <span class="store-name">SAIKODA YO !!</span>
+        <div class="nav-buttons">
+            <button onclick="location.href='wishlist.html'">WISHLIST</button>
+            <button onclick="location.href='home.html'">HOME PAGE</button>
+            <button onclick="logout()">LOG OUT</button>
+        </div>
+    </header>
+
+    <div id="cart-container">
+        <h2>Your Cart</h2>
+        <table id="cart-table" border="1" cellspacing="0" cellpadding="10">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total Price</th>
+                </tr>
+            </thead>
+            <tbody id="cart-items">
+                <!-- Cart items will be dynamically injected here -->
+            </tbody>
+        </table>
+
+        <div id="total-container">
+            <p id="total-amount" style="font-weight: bold;"></p>
+        </div>
+
+        <hr style="height: 5px; background-color: white">
+
+        <h2>Billing Information</h2>
+        <div id="billing-info">
+            <p><strong>Username:</strong> <span id="billing-username"></span></p>
+            <p><strong>Phone Number:</strong> <span id="billing-contact_number"></span></p>
+            <p><strong>Address:</strong> <span id="billing-location"></span></p>
+        </div>
+
+        <button onclick="makePayment()">Make Payment</button>
+    </div>
+
+
+    <script>
+        const username = localStorage.getItem('username');
+        if (!username) {
+            alert('You need to log in first!');
+            window.location.href = 'index.html';
+        }
+
+        // Function to load cart items
+        function loadCart() {
+            fetch(`/cart?username=${username}`)
+                .then(res => res.json())
+                .then(cartItems => {
+                    const cartContainer = document.getElementById('cart-items');
+                    const totalAmountContainer = document.getElementById('total-amount');
+
+                    cartContainer.innerHTML = ''; // Clear previous items
+                    let totalAmount = 0; // Initialize total amount
+
+                    if (cartItems.length === 0) {
+                        cartContainer.innerHTML = '<tr><td colspan="4">Your cart is empty.</td></tr>';
+                    } else {
+                        cartItems.forEach(item => {
+                            const itemTotal = item.price * item.quantity;
+                            totalAmount += itemTotal;
+
+                            cartContainer.innerHTML += `
+                                <tr>
+                                    <td>${item.name}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>₹${item.price}</td>
+                                    <td>₹${itemTotal}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+
+                    totalAmountContainer.textContent = `TOTAL AMOUNT: ₹${totalAmount}`;
+                })
+                .catch(error => console.error('Error loading cart:', error));
+
+            // Load billing info for the user
+            loadBillingInfo();
+        }
+
+        // Function to load billing information
+        function loadBillingInfo() {
+            fetch(`/user-info?username=${username}`)
+                .then(res => res.json())
+                .then(userInfo => {
+                    document.getElementById('billing-username').textContent = userInfo.username;
+                    document.getElementById('billing-contact_number').textContent = userInfo.contact_number;
+                    document.getElementById('billing-location').textContent = userInfo.location;
+                })
+                .catch(error => console.error('Error loading billing info:', error));
+        }
+
+
+        // Function to handle payment
+        function makePayment() {
+            fetch('/clear-cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Payment Successful!');
+                        window.location.href = 'home.html'; // Redirect to home page
+                    } else {
+                        throw new Error('Payment failed');
+                    }
+                })
+                .catch(error => console.error('Error during payment:', error));
+        }
+
+        // Function to handle logout
+        function logout() {
+            fetch('/clear-cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username: localStorage.getItem('username') })
+            })
+                .then(() => {
+                    localStorage.removeItem('username'); // Clear stored username
+                    window.location.href = 'index.html'; // Redirect to login
+                })
+                .catch(error => console.error('Error during logout:', error));
+        }
+
+        // Load cart and billing info on page load
+        window.onload = loadCart;
+    </script>
+
+</body>
+
+</html>

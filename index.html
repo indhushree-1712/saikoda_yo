@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="index.css">
+    <title>SAIKODA YO!! Login page</title>
+</head>
+
+<body>
+    <div class="login-container">
+        <img src="logo.png" \>
+        <h1>SAIKODA YO !!</h1>
+        <button onclick="showLogin()">Login</button>
+        <br><br>
+        <button onclick="showSignup()">Sign Up</button>
+
+
+        <div id="login-form" class="form">
+            <input type="text" id="login-username" placeholder="Username" required>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <br><br>
+            <button onclick="handleLogin()">Login</button>
+        </div>
+
+        <div id="signup-form" class="form">
+            <form action="/signup" method="POST">
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <br><br>
+                <input type="text" name="contact_number" placeholder="Contact Number" required>
+                <input type="text" name="location" placeholder="Location" required>
+                <br><br>
+                <button type="submit">Sign Up</button>
+            </form>
+        </div>
+        <script src="app.js"></script>
+</body>
+
+</html>
